@@ -21,9 +21,9 @@ services:
       - ldap-network
     volumes:
       #- ./ldap-server/schema:/container/service/slapd/assets/config/bootstrap/schema/custom
-      #- ./ldap-server/ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom
       #- ./ldap-server/certs:/container/service/slapd/assets/certs
       #- ./ldap-server/backup:/data/backup
+      - ./ldap-server/data:/docker-openldap/data
       - ldap:/var/lib/ldap
       - slapd:/etc/ldap/slapd.d
     command: [--copy-service, --loglevel, debug]
