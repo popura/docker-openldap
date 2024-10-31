@@ -1,0 +1,57 @@
+name: docker-openldap
+services:
+  ldap-server:
+    build: ./ldap-server
+    restart: always
+    environment:
+      LDAP_ORGANISATION: ${LDAP_ORGANISATION}
+      LDAP_DOMAIN: ${LDAP_DOMAIN}
+      LDAP_ADMIN_PASSWORD: ${LDAP_ADMIN_PASSWORD}
+      LDAP_TLS: ${LDAP_TLS}
+      LDAP_TLS_CRT_FILENAME: ${LDAP_TLS_CRT_FILENAME}
+      LDAP_TLS_KEY_FILENAME: ${LDAP_TLS_KEY_FILENAME}
+      LDAP_TLS_CA_FILENAME: ${LDAP_TLS_CA_FILENAME}
+      LDAP_TLS_VERIFY_CLIENT: ${LDAP_TLS_VERIFY_CLIENT}
+      LDAP_BACKUP_CONFIG_CRON_EXP: ${LDAP_BACKUP_CONFIG_CRON_EXP}
+      LDAP_BACKUP_DATA_CRON_EXP: ${LDAP_BACKUP_CONFIG_DATA_CRON_EXP}
+      LDAP_BACKUP_TTL: ${LDAP_BACKUP_TTL}
+    ports:
+      - 389:389
+    networks:
+      - ldap-network
+    volumes:
+      #- ./ldap-server/schema:/container/service/slapd/assets/config/bootstrap/schema/custom
+      #- ./ldap-server/ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom
+      #- ./ldap-server/certs:/container/service/slapd/assets/certs
+      #- ./ldap-server/backup:/data/backup
+      - ldap:/var/lib/ldap
+      - slapd:/etc/ldap/slapd.d
+    command: [--copy-service, --loglevel, debug]
+
+  ldap-account-manager:
+    image: ldapaccountmanager/lam:stable
+    restart: unless-stopped
+    ports:
+      - ${LAM_PORT}:80
+    volumes:
+      - lamconfig:/var/lib/ldap-account-manager/config
+      - lametc:/etc/ldap-account-manager/config
+    environment:
+      LAM_PASSWORD: ${LAM_PASSWORD}
+      LAM_LANG: ${LAM_LANG}
+      LDAP_SERVER: ${LDAP_SERVER}
+      LDAP_DOMAIN: ${LDAP_DOMAIN}
+      LDAP_BASE_DN: ${LDAP_BASE_DN}
+      ADMIN_USER: ${ADMIN_USER}
+      DEBUG: ${DEBUG}
+    networks:
+      - ldap-network
+
+networks:
+  ldap-network:
+
+volumes:
+  ldap:
+  slapd:
+  lamconfig:
+  lametc:
